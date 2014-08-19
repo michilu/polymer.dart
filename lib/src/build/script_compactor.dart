@@ -457,7 +457,20 @@ class _ScriptCompactor extends PolymerTransformer {
       code.writeln(']);');
     }
     if (!experimentalBootstrap) {
-      code.writeln('  i${entryLibraries.length - 1}.main();');
+      int index;
+      for (int i = entryLibraries.length - 1; i >= 0; i--) {
+        try {
+          if (entryLibraries[i].main is Function) {
+            index = i;
+            break;
+          }
+        } on NoSuchMethodError catch (e) {};
+      }
+      if (index == null) {
+        logger.info('No "main" function exists.');
+      } else {
+        code.writeln('  i${index}.main();');
+      }
     }
     code.writeln('}');
     transform.addOutput(new Asset.fromString(bootstrapId, code.toString()));
